@@ -1,0 +1,49 @@
+{
+  "name": "ai-hq",
+  "description": "준용의 개인 AI 본부 마켓플레이스 — hq-core(하네스) · verify(검증) · planning(기획) · research(조사)",
+  "owner": {
+    "name": "Junyong"
+  },
+  "plugins": [
+    {
+      "name": "hq-core",
+      "source": "./hq-core",
+      "description": "하네스: 그래프 러너·런 레저·추적 훅·가드·실시간 대시보드·외부 작업자(Cursor/OpenCode) 어댑터",
+      "category": "infrastructure"
+    },
+    {
+      "name": "verify-team",
+      "source": "./verify-team",
+      "description": "검증팀: 선행사례 조사 + 레드팀 반박 + 판정(verdict) + G3 게이트. graphs/verify.json",
+      "category": "quality"
+    },
+    {
+      "name": "planning-team",
+      "source": "./planning-team",
+      "description": "기획팀: 3관점 브레인스토밍 → 심사 → 스펙 → 실행계획 (G1)",
+      "category": "workflow"
+    },
+    {
+      "name": "research-team",
+      "source": "./research-team",
+      "description": "조사팀: 3렌즈 병렬 조사 → 종합 → 적대적 사실확인 → 브리프",
+      "category": "workflow"
+    },
+    {
+      "name": "design-team",
+      "source": "./design-team",
+      "description": "디자인팀: 2방향 병렬 시안(방향서+HTML 목업) → 적대적 비평 → 디자인 스펙 / 스토리라인 → 슬라이드 → 검토 → 발표 덱",
+      "category": "workflow"
+    },
+    {
+      "name": "class-team",
+      "source": "./class-team",
+      "description": "수업팀: 강의 노트·문제 출제 → 적대적 검사 → 수업 노트(vault courses 호환) / 과제 분해 → 초안 → 채점자 관점 검토 → 제출 계획",
+      "category": "workflow"
+    }
+  ],
+  "metadata": {
+    "description": "준용의 개인 AI 본부 마켓플레이스 — hq-core(하네스) · verify(검증) · planning(기획) · research(조사)",
+    "version": "0.3.0"
+  }
+}

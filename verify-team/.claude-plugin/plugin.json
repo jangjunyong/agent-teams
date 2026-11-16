@@ -1,0 +1,9 @@
+{
+  "name": "verify-team",
+  "version": "0.2.0",
+  "description": "전사 공용 검증팀. 선행사례 조사(originality-checker) + 레드팀 반박(red-team) + 판정 규격(verdict) + G3 게이트 훅. hq-core 그래프 규약(graphs/verify.json)으로 실행되어 runs/ 에 기록된다.",
+  "author": {
+    "name": "Junyong"
+  },
+  "displayName": "검증팀"
+}

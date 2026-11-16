@@ -1,0 +1,9 @@
+{
+  "name": "design-team",
+  "version": "0.1.0",
+  "description": "디자인팀. UI/UX·발표자료(PPT)·시각 품질. (1) design 그래프: 기획/스펙 md 하나를 받아 두 디자인 방향(절제된 편집형 / 대담한 제품형)의 방향서+단일 HTML 목업을 병렬로 만들고(visual-designer), 가독성·위계·접근성·반응형·'AI가 만든 티' 체크리스트로 적대적 비평해 승자를 고른 뒤(design-critic), 디자인 스펙(design-spec 규격)으로 올린다. (2) deck 그래프: 내용 md 하나를 스토리라인 → 슬라이드 본문(deck-writer) → 적대적 검토(design-critic) → pptx 로 옮길 수 있는 덱 md(deck-format 규격)로 만든다. hq-core 그래프 규약(graphs/design.json, graphs/deck.json)으로 실행되어 runs/ 에 기록된다.",
+  "author": {
+    "name": "Junyong"
+  },
+  "displayName": "디자인팀"
+}

@@ -1,0 +1,54 @@
+{
+  "name": "design",
+  "team": "design-team",
+  "version": 1,
+  "title": "2방향 디자인 방향서+HTML 목업(병렬) → 적대적 비평 → 디자인 스펙",
+  "inputs": {
+    "target": "기획/스펙 md 경로 (프로젝트 루트 기준, 예: _work/plan/idea.spec.md)"
+  },
+  "policy": {
+    "max_rounds": 2,
+    "escalate_to": "human",
+    "on_fail": "loopback",
+    "loopback_trigger": "critique 출력의 frontmatter winner 가 NONE 이면 direction_a/direction_b 부터 다시 (이전 critique 는 .critique.r<회차>.md 로, 이전 방향 파일 4개는 .dir-a.r<회차>.md/.html 등으로 보존하고 #9 재작업 지시를 추가 입력으로 준다). round ≥ max_rounds 에서 또 NONE 이면 escalate"
+  },
+  "nodes": [
+    {
+      "id": "direction_a",
+      "title": "디자인 방향 A — 절제된 편집형 (방향서 + HTML 목업)",
+      "agent": "design-team:visual-designer",
+      "inputs": ["{target}"],
+      "outputs": ["_work/design/{stem}.dir-a.md", "_work/design/{stem}.dir-a.html"],
+      "parallel_group": "direction",
+      "prompt": "목표: {target} 의 실제 주제·콘텐츠에서 끌어낸 '절제된 편집형(editorial)' 디자인 방향 1개를 방향서 md + 단일 HTML 목업 한 쌍으로 만든다.\n방향: editorial — 잡지·신문 편집처럼 타이포 위계·여백·정렬 그리드·읽는 흐름으로 말한다. 중립 팔레트(종이·잉크 톤) + 악센트 1색, 제목 서체와 본문 서체의 대비를 최우선. 시각적 임팩트·큰 CTA·카드·배지·컴포넌트 밀도는 의도적으로 후순위.\n입력: {target} (이 파일만 근거로 삼는다. _work/design/ 의 다른 방향(dir-b) 파일·이전 회차 파일은 읽지 않는다. 루프백 회차라면 오케스트레이터가 추가로 지정한 *.critique.r<N>.md 의 '#9 재작업 지시' 중 a 항목만 더 읽는다)\n출력: (1) _work/design/{stem}.dir-a.md — design-spec 스킬 1절 방향서 양식. frontmatter type: design, status: draft, owner: design-team:visual-designer, direction: editorial, mockup: _work/design/{stem}.dir-a.html, inputs: [{target}], created: {today} (2) _work/design/{stem}.dir-a.html — design-spec 스킬 2절 규칙: 단일 파일, <style> 인라인, 외부 <link>/<script src>/@import/http 이미지 0개, 시스템 폰트 스택, {target} 의 실제 콘텐츠(기능명·문장·수치)만 사용, <html lang=\"ko\">+viewport, 시맨틱 랜드마크, :root CSS 변수(--color-*/--font-*)만 사용, :focus-visible 명시, hover/focus/disabled 중 2개 이상, @media 1개 이상에서 레이아웃 변화, 첫 줄 주석 <!-- design-team direction=a stem={stem} source={target} -->, 600줄 이내.\n제약: 방향을 옹호하지 않는다(방향서는 '이렇게 한다' 이지 '이게 좋다' 가 아니다). 다른 방향(대담한 제품형)의 장점을 섞지 않는다. design-spec 스킬 5절 AI 클리셰 C1~C12 를 전부 피한다(보라 그라데이션, Inter 단독, 이모지 마커, Tailwind 기본 hex, 3열 Features 카드, 글래스모피즘, 전부 가운데 정렬+100vh 히어로, lorem·자리표시, 체크·로켓 불릿, 일괄 16px+ 라운드·pill 남발, 저대비 회색, 원문에 없는 장식 기능). 팔레트 hex 마다 주제에서 끌어낸 이유와 대비비(0절 공식 계산값, 소수 1자리)를 쓴다 — 본문/배경 4.5:1 이상. outline:none 금지. '확정'·'최종' 어휘 금지. 방향서 1,500자 이내.\n완료조건: (1) 방향서 섹션 1~9 가 번호·제목 그대로 있다 (2) #2 팔레트 4~6색, 행마다 역할·이름·hex·용도·주제에서 끌어낸 이유, 본문/배경 대비비 4.5:1 이상 수치 (3) #3 서체 2종 이상(제목·본문 역할 구분), 폴백 스택·이유 (4) #5 시그니처 요소 정확히 1개 + 목업 선택자 지목 (5) #6 에 5절 C번호로 3개 이상과 대신 한 것(선택자) (6) #7 포기한 것 2개 이상 (7) #8 가장 약한 고리 1개 + 이유 (8) HTML 파일이 존재하고 외부 의존 0개, lorem/자리표시 0개, {target} 의 문장 3개 이상이 그대로 들어 있고, 방향서 #2 의 hex 와 CSS 변수 hex 가 일치하며, :focus-visible 과 @media 가 있다 (9) frontmatter 에 type: design, status: draft, owner: design-team:visual-designer, direction: editorial, mockup, inputs, created 가 전부 있다 — type/status/owner 가 빠지면 node done 이 실패한다"
+    },
+    {
+      "id": "direction_b",
+      "title": "디자인 방향 B — 대담한 제품형 (방향서 + HTML 목업)",
+      "agent": "design-team:visual-designer",
+      "inputs": ["{target}"],
+      "outputs": ["_work/design/{stem}.dir-b.md", "_work/design/{stem}.dir-b.html"],
+      "parallel_group": "direction",
+      "prompt": "목표: {target} 의 실제 주제·콘텐츠에서 끌어낸 '대담한 제품형(product)' 디자인 방향 1개를 방향서 md + 단일 HTML 목업 한 쌍으로 만든다.\n방향: product — 제품 화면·대시보드처럼 강한 색 블록·큰 숫자·뚜렷한 CTA·상태가 드러나는 컴포넌트 시스템으로 첫 5초 안에 무슨 제품인지 보이게 한다. 다크 배경 허용. 여백 절제·긴 글 가독성·정보 밀도는 의도적으로 후순위. '대담' 은 그라데이션·네온·이모지가 아니다 — 색 면적·크기 대비·컴포넌트 윤곽으로 낸다.\n입력: {target} (이 파일만 근거로 삼는다. _work/design/ 의 다른 방향(dir-a) 파일·이전 회차 파일은 읽지 않는다. 루프백 회차라면 오케스트레이터가 추가로 지정한 *.critique.r<N>.md 의 '#9 재작업 지시' 중 b 항목만 더 읽는다)\n출력: (1) _work/design/{stem}.dir-b.md — design-spec 스킬 1절 방향서 양식. frontmatter type: design, status: draft, owner: design-team:visual-designer, direction: product, mockup: _work/design/{stem}.dir-b.html, inputs: [{target}], created: {today} (2) _work/design/{stem}.dir-b.html — design-spec 스킬 2절 규칙: 단일 파일, <style> 인라인, 외부 <link>/<script src>/@import/http 이미지 0개, 시스템 폰트 스택, {target} 의 실제 콘텐츠(기능명·문장·수치)만 사용, <html lang=\"ko\">+viewport, 시맨틱 랜드마크, :root CSS 변수(--color-*/--font-*)만 사용, :focus-visible 명시, 주 CTA 버튼에 hover·focus-visible·disabled 스타일, 원문에 쓰임새가 있는 상태색(성공·경고·위험·정보) 컴포넌트 1개 이상(색 외 구분 수단 병기), @media 1개 이상에서 레이아웃 변화, 첫 줄 주석 <!-- design-team direction=b stem={stem} source={target} -->, 600줄 이내.\n제약: 방향을 옹호하지 않는다. 다른 방향(절제된 편집형)의 장점을 섞지 않는다. design-spec 스킬 5절 AI 클리셰 C1~C12 를 전부 피한다 — 제품형이 특히 빠지기 쉬운 C1(보라 그라데이션)·C4(Tailwind hex)·C5(3열 Features 카드)·C6(글래스모피즘·네온)·C10(pill 남발) 을 #6 에 반드시 다룬다. 팔레트 hex 마다 주제에서 끌어낸 이유와 대비비(0절 공식 계산값, 소수 1자리) — 본문/배경·버튼 글자/버튼 배경 4.5:1 이상. outline:none 금지. '확정'·'최종' 어휘 금지. 방향서 1,500자 이내.\n완료조건: (1) 방향서 섹션 1~9 가 번호·제목 그대로 있다 (2) #2 팔레트 4~6색, 행마다 역할·이름·hex·용도·주제에서 끌어낸 이유, 본문/배경·버튼 대비비 4.5:1 이상 수치 (3) #3 서체 2종 이상, 폴백 스택·이유 (4) #5 시그니처 요소 정확히 1개 + 목업 선택자 지목 (5) #6 에 C1·C4·C5·C6·C10 중 3개 이상 포함, 대신 한 것(선택자) (6) #7 포기한 것 2개 이상 (7) #8 가장 약한 고리 1개 + 이유 (8) HTML 파일이 존재하고 외부 의존 0개, lorem/자리표시 0개, {target} 의 문장 3개 이상이 그대로 들어 있고, 주 CTA 에 hover·focus-visible·disabled 가 있으며, 방향서 #2 의 hex 와 CSS 변수 hex 가 일치하고, @media 가 있다 (9) frontmatter 에 type: design, status: draft, owner: design-team:visual-designer, direction: product, mockup, inputs, created 가 전부 있다 — type/status/owner 가 빠지면 node done 이 실패한다"
+    },
+    {
+      "id": "critique",
+      "title": "적대적 비평 — 7축 체크리스트·AI 클리셰 적발·승자 선정",
+      "agent": "design-team:design-critic",
+      "inputs": ["{target}", "{direction_a.out}", "{direction_a.out1}", "{direction_b.out}", "{direction_b.out1}"],
+      "outputs": ["_work/design/{stem}.critique.md"],
+      "prompt": "목표: 두 디자인 방향(A 절제된 편집형 / B 대담한 제품형)의 방향서와 HTML 목업을 '둘 다 반려하겠다' 는 입장에서 design-spec 스킬 3절 체크리스트 7축(가독성·위계·일관성·접근성·반응형·AI 티·콘텐츠 충실도) 1~5점으로 비평하고 승자 하나(또는 NONE), 승자의 필수 수정, 패자에서 가져올 요소를 정한다.\n모드: critique\n입력: {target}, {direction_a.out}, {direction_a.out1}, {direction_b.out}, {direction_b.out1} (이 다섯 파일만 근거. 작성 맥락·옹호성 설명은 없다. HTML 두 파일은 반드시 열어 실제 CSS 값(font-family·font-size·line-height·hex·@media·:focus-visible·border-radius·box-shadow·linear-gradient·backdrop-filter·<link>/<script>/http·onclick)과 본문 텍스트(lorem·자리표시·이모지)를 직접 찾아 인용한다. 루프백 회차라면 오케스트레이터가 지정한 이전 비평 *.critique.r<N>.md 는 '#9 재작업 지시' 반영 여부 확인에만 쓴다)\n출력: _work/design/{stem}.critique.md — design-spec 스킬 3절 비평표 양식. frontmatter type: analysis, status: draft, owner: design-team:design-critic, winner: A|B|NONE, round: <오케스트레이터가 알려준 회차>, inputs: [{target}, {direction_a.out}, {direction_a.out1}, {direction_b.out}, {direction_b.out1}], created: {today}\n제약: 칭찬·완충 문장 금지. 축 단위로(A·B 를 나란히) 채점한다. 근거 없는 점수 금지 — 근거는 파일 내 요소 지목(예: dir-b.html:.hero h1 font-size 72px, dir-a.md#2 3행). 대비비는 hex 로 직접 계산해 소수 1자리로 적는다(본문/배경·악센트/배경·버튼 글자/버튼 배경 세 쌍 이상, '낮아 보인다' 금지). 방향서가 적은 대비비를 믿지 않고 다시 계산한다. AI 클리셰는 C1~C12 번호로 센다. 치명 클리셰(보라 그라데이션·lorem·div 버튼·포커스 제거) 1건 = 해당 축 2점 이하. 2절 규칙 위반(외부 의존·자리표시·@media 없음·:focus-visible 없음)이 있는 방향은 합계와 무관하게 승자 불가. 두 안을 섞어 세 번째 안을 제안하지 않는다. 승자 규칙(합계 최고, 동점 시 접근성→AI 티→가독성, 최고 합계<21 또는 두 방향 모두 접근성/AI 티 ≤2 또는 두 방향 모두 규칙 위반이면 NONE)을 따르고 '종합적으로' 는 쓰지 않는다. 취향 어휘('세련' '느낌')는 근거가 아니다. 목업을 대신 고쳐 쓰지 않는다.\n완료조건: (1) #1 채점표 14칸 전부 정수 점수(또는 '근거 부족')와 합계 (2) #2 축별 근거 14칸 전부 '점수 → 근거(경로:선택자|줄) → 반박' 구조, 접근성 축에 계산한 대비비 3쌍 이상 (3) #3 AI 클리셰 적발표에 방향·C번호·위치·심각도(0건이면 확인 항목 명시) (4) #4 규칙 위반 목록(없으면 '없음') (5) #5 승자와 선정 사유 3줄 이내, frontmatter winner 와 일치 (6) #6 승자의 필수 수정 1개 이상(문제·위치·수정 방향) (7) #7 패자에서 가져올 요소 1개 이상(출처 선택자·이식 방법·비용) 또는 '없음'+이유 (8) #8 버린 것 목록 (9) NONE 이면 #9 에 방향 a/b 별 재작업 지시(어느 선택자·어느 규칙을 어떻게), 아니면 '해당 없음' (10) frontmatter 에 type: analysis, status: draft, owner: design-team:design-critic, winner, round, inputs, created 가 전부 있다 — type/status/owner 가 빠지면 node done 이 실패한다"
+    },
+    {
+      "id": "spec",
+      "title": "디자인 스펙 (오케스트레이터, design-spec 4절)",
+      "agent": "orchestrator",
+      "skill": "design-team:design-spec",
+      "inputs": ["{target}", "{critique.out}"],
+      "outputs": ["_work/{stem}.design-spec.md"],
+      "gate": "G3",
+      "when": "critique 출력의 winner 가 A|B 일 때. NONE 이면 skip 하고 루프백(policy) 또는 에스컬레이션",
+      "prompt": "목표: 비평이 고른 승자 방향서·목업과 비평 #6 필수 수정·#7 가져올 요소만 근거로 design-spec 스킬 4절 디자인 스펙(색 토큰 표·타이포 스케일·간격/레이아웃·컴포넌트 목록·상태색·반응형 규칙·접근성 규칙·금지 목록)을 직접 쓴다.\n입력: {target}, {critique.out}, 그리고 {critique.out} 의 frontmatter winner 가 가리키는 승자 방향서와 목업 한 쌍(A 면 {direction_a.out} + {direction_a.out1}, B 면 {direction_b.out} + {direction_b.out1}). 패자 파일은 읽지 않는다 — 패자에서 가져올 것은 비평 #7 에 이미 추려져 있다. 에이전트 결과를 요약·윤색하지 않는다.\n출력: _work/{stem}.design-spec.md — frontmatter type: spec, status: in-review, owner: design-team, verified_by: [], verify_round: 0, based_on: dir-a|dir-b, critique: <winner>, inputs: [{target}, {critique.out}, <승자 dir md>, <승자 dir html>], run: <run_id>, created: {today}\n제약: 승자 방향서·목업·비평에 없는 색·서체·컴포넌트를 새로 만들지 않는다. 토큰 hex 는 승자 목업 CSS 변수에서 그대로 가져오고, 비평 #6 으로 바뀐 값은 출처에 critique#6 을 적는다. 비평 #6 필수 수정은 전부 #9 비평 반영 내역에서 처리(반영 또는 이유 있는 보류→#10 열린 질문). 비평 #3 적발 항목과 #8 버린 것은 #8 금지 목록에 들어간다. '확정'·'최종'·'승인' 어휘 금지 — 제목에 '(미확정)' 유지. 3,000자 이내.\n완료조건: (1) 섹션 0~11 이 양식대로 있다 (2) #1 색 토큰 표에 색마다 --color- 토큰·hex·용도·배경 대비비·출처, 본문 4.5:1 이상 (3) #2 타이포 스케일에 서체 2종 + 레벨 5개 이상(크기 px/rem·행간·굵기·용도), 본문 ≥16px (4) #4 컴포넌트 4개 이상, 각 변형·상태·목업 선택자 (5) #5 상태색 success/warning/danger/info 4종, 각 hex·전경·대비(미사용이면 '미사용') (6) #6 반응형 규칙이 목업 @media 와 일치 (7) #8 금지 목록에 5절 C1~C12 전부 + 비평 #3/#8 항목 (8) #9 에 critique#6 전부와 #7 이식분 처리 (9) #11 근거 추적표에서 모든 스펙 항목이 경로#섹션 또는 선택자로 되짚어진다 (10) frontmatter 에 type: spec, status: in-review, owner: design-team, verified_by: [], verify_round: 0, based_on, critique, inputs, run, created 가 전부 있다 — '확정' 어휘 0회"
+    }
+  ]
+}

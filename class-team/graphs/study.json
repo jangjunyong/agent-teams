@@ -1,0 +1,54 @@
+{
+  "name": "study",
+  "team": "class-team",
+  "version": 1,
+  "title": "개념 노트 ∥ 문제 10개 → 적대적 검사(원문 대조) → 수업 노트 (vault courses/ 호환)",
+  "inputs": {
+    "target": "강의자료 파일 경로 (md/pdf/txt, 프로젝트 루트 기준, 예: _work/lecture03.pdf)",
+    "course": "과목명 (vault tags course/<과목> 과 courses/<과목>/ 폴더명에 쓴다, 공백 없이)"
+  },
+  "policy": {
+    "max_rounds": 2,
+    "escalate_to": "human",
+    "on_fail": "loopback",
+    "loopback_to": "notes|quiz (examine 의 notes_verdict / quiz_verdict 가 PASS 가 아닌 쪽만. PASS 인 쪽은 skip)",
+    "fail_when": "examine 출력의 examine_verdict 가 REVISE 또는 FAIL. 이전 검사표는 _work/class/<stem>.examine.r<회차>.md 로 보존하고 #6 수정 요구를 재작성 노드의 추가 입력으로 준다. round ≥ max_rounds 에서 또 REVISE/FAIL 이면 escalate"
+  },
+  "nodes": [
+    {
+      "id": "notes",
+      "title": "개념 노트 — 개념별 정의·왜 중요·예시·흔한 오해 (원문 위치 필수)",
+      "agent": "class-team:notetaker",
+      "inputs": ["{target}"],
+      "outputs": ["_work/class/{stem}.notes.md"],
+      "parallel_group": "collect",
+      "prompt": "목표: 강의자료 {target} (과목: {course}) 에 실제로 적힌 핵심 개념을 개념 단위로 정리한 개념 노트 1개를 쓴다. 개념마다 정의·왜 중요한가·예시·흔한 오해 네 칸과 원문 위치를 단다.\n입력: {target} (이 파일만 근거로 삼는다. pdf 면 전 페이지를 읽는다. _work/class/ 의 문제지·이전 노트, vault 노트는 읽지 않는다. 루프백 회차라면 오케스트레이터가 추가로 지정한 _work/class/{stem}.examine.r<N>.md 의 '#6 수정 요구' 중 대상이 notes 인 행만 더 읽는다)\n출력: _work/class/{stem}.notes.md — course-note 스킬 1절 개념 노트 양식. frontmatter type: report, status: draft, owner: class-team:notetaker, course: {course}, source_file: {target}, concepts_count: <개념 수>, inputs: [{target}], created: {today}\n제약: 원문 밖 지식을 원문 내용처럼 쓰지 않는다(보태려면 [추정] + 한 줄 이내). 원문 위치 없는 문장 금지. 원문 문단 복붙 금지(인용은 개념당 한 문장 이내). 칭찬·완충 문장 금지. 개수를 채우려 용어를 개념으로 승격하지 않는다. 4,000자 이내.\n완료조건: (1) 섹션 1~6 이 번호·제목 그대로 있다 (2) #1 에 위치 표기 방식(p./§/slide/L) 선언 (3) #2 개념마다 정의·왜 중요한가·예시·흔한 오해 네 칸이 있고 각 칸에 원문 위치 또는 '원문에 없음' (4) 원문 밖 내용은 전부 [추정] 표기 (5) concepts_count 가 #2 개념 수와 일치 (6) #5 용어만 나온 것, #6 근거 목록이 비어 있지 않다(없으면 '없음') (7) frontmatter 에 type: report, status: draft, owner: class-team:notetaker, course, source_file, concepts_count, inputs, created 가 전부 있다 — type/status/owner 가 빠지면 node done 이 실패한다"
+    },
+    {
+      "id": "quiz",
+      "title": "문제 10개 — 객관식 5·단답 3·서술 2 (정답·해설·원문 근거 위치)",
+      "agent": "class-team:quiz-maker",
+      "inputs": ["{target}"],
+      "outputs": ["_work/class/{stem}.quiz.md"],
+      "parallel_group": "collect",
+      "prompt": "목표: 강의자료 {target} (과목: {course}) 만으로 정답이 확정되는 확인 문제 10개(객관식 5·단답 3·서술 2)를 정답·해설·원문 근거 위치와 함께 만든다.\n입력: {target} (이 파일만 근거로 삼는다. pdf 면 전 페이지를 읽는다. _work/class/ 의 개념 노트·이전 문제지, vault 노트는 읽지 않는다 — 노트 작성자와 독립이어야 검사관이 교차 검증한다. 루프백 회차라면 오케스트레이터가 추가로 지정한 _work/class/{stem}.examine.r<N>.md 의 '#6 수정 요구' 중 대상이 quiz 인 행만 더 읽는다)\n출력: _work/class/{stem}.quiz.md — course-note 스킬 2절 문제지 양식. frontmatter type: report, status: draft, owner: class-team:quiz-maker, course: {course}, source_file: {target}, questions: 10, inputs: [{target}], created: {today}\n제약: 원문 밖 지식이 있어야 풀리는 문제 금지. 근거 위치 없는 문제 금지. 객관식은 보기 4개·정답 하나. 단순 암기 문제 3개 이하. 자료 앞 1/3 에서 6개 이상 출제 금지. 정답이 원문 두 곳에서 충돌하면 출제하지 않고 #3 에 기록. 칭찬·완충 문장 금지.\n완료조건: (1) 섹션 1~3 이 번호·제목 그대로 있다 (2) Q1~Q5 객관식·Q6~Q8 단답·Q9~Q10 서술 순서·개수 정확 (3) 문제마다 난이도·정답·해설·근거 위치·개념 이름이 있다 (4) 객관식 해설에 오답 보기마다 한 줄 (5) 서술 2문제에 채점 기준(핵심어 3개 이내 + 논지 1개) (6) #1 출제 분포표 10행 (7) frontmatter 에 type: report, status: draft, owner: class-team:quiz-maker, course, source_file, questions: 10, inputs, created 가 전부 있다 — type/status/owner 가 빠지면 node done 이 실패한다"
+    },
+    {
+      "id": "examine",
+      "title": "적대적 검사 — 원문 대조·누락·오류·근거 없음 표시·점수화·판정",
+      "agent": "class-team:examiner",
+      "inputs": ["{target}", "{notes.out}", "{quiz.out}"],
+      "outputs": ["_work/class/{stem}.examine.md"],
+      "prompt": "목표: {notes.out} 과 {quiz.out} 이 틀렸다는 전제에서 강의자료 {target} 원문과 한 줄씩 대조해, 누락 개념·틀린 정답/해설·근거 없는 문장을 CRITICAL/MAJOR/MINOR 로 표시하고 점수화한 뒤 notes_verdict·quiz_verdict·examine_verdict(PASS|REVISE|FAIL) 를 판정한다.\n입력: {target} 을 먼저 읽고 검사관 자신의 핵심 개념 목록을 만든 뒤 {notes.out}, {quiz.out} 을 읽는다 (이 세 파일만 근거. 작성 맥락·옹호성 설명은 없다. 재검사 회차라면 오케스트레이터가 지정한 이전 검사표 _work/class/{stem}.examine.r<N>.md 는 '#6 수정 요구' 반영 여부 확인에만 쓴다)\n출력: _work/class/{stem}.examine.md — course-note 스킬 3절 검사표 양식. frontmatter type: analysis, status: draft, owner: class-team:examiner, course: {course}, examine_verdict: PASS|REVISE|FAIL, notes_verdict, quiz_verdict, notes_score, quiz_score, round: <오케스트레이터가 알려준 회차>, inputs: [{target}, {notes.out}, {quiz.out}], created: {today}\n제약: 칭찬·완충 문장 금지. 고쳐 쓰지 않는다. 지적마다 원문 위치 필수. 누락 검사는 검사관 개념 목록 전부에 대해, 정답 재확인은 10문제 전부에 대해 한다(표본 금지). 심각도·점수(100 − CRITICAL×20 − MAJOR×10 − MINOR×3)·판정 규칙(CRITICAL≥1 → FAIL / MAJOR≥2 → REVISE / 그 외 PASS, examine_verdict 는 둘 중 나쁜 쪽)을 재량으로 완화하지 않는다. 원문·노트·문제지 외 파일·웹 금지.\n완료조건: (1) #1 검사관 개념 목록에 개념마다 위치·노트 유무·문제 유무 (2) #2 노트 발견 사항 행마다 심각도·노트 위치·원문 위치·'원문에는 이렇게' (3) #3 에 Q1~Q10 열 행 전부(정답 재확인 일치/불일치) (4) #5 에 노트·문제지 각각 CRITICAL/MAJOR/MINOR 개수·점수·판정과 examine_verdict 근거 3줄 이내, frontmatter 값과 일치 (5) REVISE/FAIL 이면 #6 수정 요구가 대상(notes|quiz)·항목·바꿀 것·원문 위치와 함께, 작성자가 그것만 보고 고칠 수 있는 수준 — PASS 면 '해당 없음' (6) frontmatter 에 type: analysis, status: draft, owner: class-team:examiner, course, examine_verdict, notes_verdict, quiz_verdict, notes_score, quiz_score, round, inputs, created 가 전부 있다 — type/status/owner 가 빠지면 node done 이 실패한다"
+    },
+    {
+      "id": "note",
+      "title": "수업 노트 (오케스트레이터, course-note 4절 — vault courses/ 호환)",
+      "agent": "orchestrator",
+      "skill": "class-team:course-note",
+      "inputs": ["{target}", "{notes.out}", "{quiz.out}", "{examine.out}"],
+      "outputs": ["_work/{stem}.course-note.md"],
+      "prompt": "목표: {notes.out}, {quiz.out}, {examine.out} 세 파일만 근거로 course-note 스킬 4절 최종 수업 노트를 직접 쓴다. examine 을 통과한 개념·문제만 싣고, 걸린 것은 #5 로 보낸다.\n입력: {notes.out}, {quiz.out}, {examine.out} (세 파일에 적힌 것만. {target} 은 위치 표기 확인용으로만 연다. 에이전트 결과를 요약·윤색하지 않는다)\n출력: _work/{stem}.course-note.md — frontmatter type: report, status: (examine_verdict PASS 면 in-review, 아니면 draft), owner: class-team, verified_by: [], verify_round: 0, title: {course} — <자료 제목>, created: {today}, updated: {today}, tags: [course/{course}], source: {course} 강의자료 {target}, vault_status: seed, course: {course}, examine: <examine_verdict>, round: <회차>, run: <run_id>, inputs: [{target}, {notes.out}, {quiz.out}, {examine.out}]\n제약: examine #2 에서 CRITICAL/MAJOR 지적이 남은 개념, #3 에서 '불일치' 또는 CRITICAL/MAJOR 인 문제는 #2·#4 에 넣지 않는다. 세 파일에 없는 개념·문제를 새로 만들지 않는다. 원문 위치 표기를 지우지 않는다. 본문 첫 줄 인용문(examine 판정·적재 규칙 안내)을 유지한다. vault 에 직접 쓰지 않는다(적재는 5절 규칙대로 사람 확인 뒤). 5,000자 이내.\n완료조건: (1) 섹션 1~6 과 '정답' 절이 양식대로 있다 (2) #1 한눈에 3줄, 각 줄에 위치 (3) #2 개념마다 정의·왜 중요·예시·흔한 오해·위치 (4) #4 의 모든 문제가 examine #3 '일치' 이고 정답·해설은 '정답' 절에 (5) #5 에 examine 점수와 제외한 개념·문제·이유(없으면 '없음') (6) #6 관련 노트에 [[백링크]] 후보 1개 이상 또는 '적재 시 검색' (7) frontmatter 에 type: report, status, owner: class-team, verified_by: [], verify_round: 0, title, created, updated, tags: [course/{course}], source, vault_status: seed, course, examine, round, run, inputs 가 전부 있다 — type/status/owner 가 빠지면 node done 이 실패한다"
+    }
+  ]
+}

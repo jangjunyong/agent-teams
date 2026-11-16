@@ -1,0 +1,56 @@
+{
+  "name": "contest",
+  "team": "hq-core",
+  "version": 1,
+  "title": "공모전 미션 — 조사 → 기획 → 검증 → 발표 덱 (4팀 릴레이)",
+  "inputs": {
+    "idea": "아이디어/주제 md 경로 (예: _work/idea.md)",
+    "question": "사전 조사 질문 (선택. 없으면 조사 노드 skip)"
+  },
+  "policy": {
+    "max_rounds": 2,
+    "escalate_to": "human",
+    "on_fail": "loopback"
+  },
+  "nodes": [
+    {
+      "id": "research",
+      "title": "사전 조사 (조사팀)",
+      "agent": "orchestrator",
+      "subgraph": "research-team/research",
+      "subgraph_inputs": {"question": "{question}", "slug": "{stem}-research"},
+      "inputs": ["{idea}"],
+      "outputs": ["_work/{stem}-research.brief.md"],
+      "when": "question 입력이 주어졌을 때만. 없으면 skip"
+    },
+    {
+      "id": "plan",
+      "title": "기획 (기획팀)",
+      "agent": "orchestrator",
+      "subgraph": "planning-team/plan",
+      "subgraph_inputs": {"target": "{idea}"},
+      "inputs": ["{idea}"],
+      "outputs": ["_work/{stem}.plan.md"]
+    },
+    {
+      "id": "verify",
+      "title": "검증 (검증팀)",
+      "agent": "orchestrator",
+      "subgraph": "verify-team/verify",
+      "subgraph_inputs": {"target": "{plan.out}"},
+      "inputs": ["{plan.out}"],
+      "outputs": ["_work/{stem}.plan.verdict.md"],
+      "gate": "G1"
+    },
+    {
+      "id": "deck",
+      "title": "발표 덱 (디자인팀)",
+      "agent": "orchestrator",
+      "subgraph": "design-team/deck",
+      "subgraph_inputs": {"target": "{plan.out}"},
+      "inputs": ["{plan.out}", "{verify.out}"],
+      "outputs": ["_work/{stem}.plan.deck.md"],
+      "when": "verify 가 PASS 일 때만. FAIL 이면 기획 반려 루프백"
+    }
+  ]
+}

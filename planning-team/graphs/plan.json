@@ -1,0 +1,69 @@
+{
+  "name": "plan",
+  "team": "planning-team",
+  "version": 1,
+  "title": "3관점 기획안(병렬) → 적대적 심사 → 스펙 → 실행 계획 (G1)",
+  "inputs": {
+    "target": "아이디어 md 경로 (프로젝트 루트 기준, 예: _work/idea.md)"
+  },
+  "policy": {
+    "max_rounds": 2,
+    "escalate_to": "human",
+    "on_fail": "loopback",
+    "loopback_trigger": "judge 출력의 frontmatter winner 가 NONE 이면 brainstorm_a/b/c 부터 다시 (이전 judge 는 .judge.r<회차>.md 로 보존하고 #7 재기획 지시를 추가 입력으로 준다). round ≥ max_rounds 에서 또 NONE 이면 escalate"
+  },
+  "nodes": [
+    {
+      "id": "brainstorm_a",
+      "title": "기획안 A — 사용자 가치 우선",
+      "agent": "planning-team:brainstormer",
+      "inputs": ["{target}"],
+      "outputs": ["_work/plan/{stem}.option-a.md"],
+      "prompt": "목표: {target} 의 아이디어를 '사용자 가치 우선' 관점 하나로만 밀어붙인 독립 기획안 1개를 쓴다.\n관점: user-value — 사용자가 지금 겪는 불편·쓰는 장면·갈아탈 이유·측정 가능한 가치를 최우선으로 두고, 구현 난이도와 경쟁은 의도적으로 후순위에 둔다.\n입력: {target} (이 파일만 근거로 삼는다. _work/plan/ 의 다른 option 파일·이전 회차 안은 읽지 않는다. 루프백 회차라면 오케스트레이터가 추가로 지정한 *.judge.r<N>.md 의 '#7 재기획 지시' 만 더 읽는다)\n출력: _work/plan/{stem}.option-a.md — plan-format 스킬 1절 양식. frontmatter type: proposal, status: draft, owner: planning-team:brainstormer, perspective: user-value, inputs: [{target}], created: {today}\n제약: 아이디어를 옹호하지 않는다. 다른 관점의 장점을 끌어오지 않는다. 외부 조사·시장 수치 금지(미확인은 '선행조사 필요' 로 표기). '확정'·'최종' 어휘 금지. 1,500자 이내, 기능 후보 5개 이내.\n완료조건: (1) 섹션 1~7 이 번호·제목 그대로 있다 (2) #2 핵심 가설 1~3개가 '~하면 ~할 것이다' 꼴이다 (3) #4 기능마다 '이 관점에서 필요한 이유' 와 근거가 있다 (4) #5 포기한 것 2개 이상 (5) #6 가장 약한 고리 1개 + 이유 (6) 원문 인용은 경로#섹션 또는 따옴표 인용, 추정은 '추정' 표기 (7) frontmatter 에 type: proposal, status: draft, owner: planning-team:brainstormer, perspective: user-value, inputs, created 가 전부 있다"
+    },
+    {
+      "id": "brainstorm_b",
+      "title": "기획안 B — 기술 실현 가능성 우선",
+      "agent": "planning-team:brainstormer",
+      "inputs": ["{target}"],
+      "outputs": ["_work/plan/{stem}.option-b.md"],
+      "prompt": "목표: {target} 의 아이디어를 '기술 실현 가능성 우선' 관점 하나로만 밀어붙인 독립 기획안 1개를 쓴다.\n관점: feasibility — 지금 가진 기술·시간·사람으로 되는 최소 구현 경로와 의존하는 외부 자원(데이터·API·예산)의 확보 여부를 최우선으로 두고, 확장성과 차별성은 의도적으로 후순위에 둔다.\n입력: {target} (이 파일만 근거로 삼는다. _work/plan/ 의 다른 option 파일·이전 회차 안은 읽지 않는다. 루프백 회차라면 오케스트레이터가 추가로 지정한 *.judge.r<N>.md 의 '#7 재기획 지시' 만 더 읽는다)\n출력: _work/plan/{stem}.option-b.md — plan-format 스킬 1절 양식. frontmatter type: proposal, status: draft, owner: planning-team:brainstormer, perspective: feasibility, inputs: [{target}], created: {today}\n제약: 아이디어를 옹호하지 않는다. 다른 관점의 장점을 끌어오지 않는다. 외부 조사·시장 수치 금지(미확인은 '선행조사 필요' 로 표기). '확정'·'최종' 어휘 금지. 1,500자 이내, 기능 후보 5개 이내. 기술 스택 이름을 쓰려면 '원문에 있음' 또는 '추정' 을 붙인다.\n완료조건: (1) 섹션 1~7 이 번호·제목 그대로 있다 (2) #2 핵심 가설 1~3개가 '~하면 ~할 것이다' 꼴이다 (3) #4 기능마다 '이 관점에서 필요한 이유' 와 근거가 있고, 각 기능이 의존하는 자원이 적혀 있다 (4) #5 포기한 것 2개 이상 (5) #6 가장 약한 고리 1개 + 이유 (6) 원문 인용은 경로#섹션 또는 따옴표 인용, 추정은 '추정' 표기 (7) frontmatter 에 type: proposal, status: draft, owner: planning-team:brainstormer, perspective: feasibility, inputs, created 가 전부 있다"
+    },
+    {
+      "id": "brainstorm_c",
+      "title": "기획안 C — 리스크·차별화 우선",
+      "agent": "planning-team:brainstormer",
+      "inputs": ["{target}"],
+      "outputs": ["_work/plan/{stem}.option-c.md"],
+      "prompt": "목표: {target} 의 아이디어를 '리스크·차별화 우선' 관점 하나로만 밀어붙인 독립 기획안 1개를 쓴다.\n관점: risk-differentiation — 대체재('그냥 엑셀'·'안 하기' 포함) 대비 각도와, 이 안을 죽이는 조건(규제·비용·수요·기술·데이터 부재)을 찾아 그것을 피하는 설계를 최우선으로 두고, 편의 기능과 구현 순서는 의도적으로 후순위에 둔다.\n입력: {target} (이 파일만 근거로 삼는다. _work/plan/ 의 다른 option 파일·이전 회차 안은 읽지 않는다. 루프백 회차라면 오케스트레이터가 추가로 지정한 *.judge.r<N>.md 의 '#7 재기획 지시' 만 더 읽는다)\n출력: _work/plan/{stem}.option-c.md — plan-format 스킬 1절 양식. frontmatter type: proposal, status: draft, owner: planning-team:brainstormer, perspective: risk-differentiation, inputs: [{target}], created: {today}\n제약: 아이디어를 옹호하지 않는다. 다른 관점의 장점을 끌어오지 않는다. 외부 조사·경쟁사 수치 금지(대체재는 원문·상식 수준에서 이름만 들고 '선행조사 필요' 로 표기). '확정'·'최종' 어휘 금지. 1,500자 이내, 기능 후보 5개 이내.\n완료조건: (1) 섹션 1~7 이 번호·제목 그대로 있다 (2) #2 핵심 가설 1~3개가 '~하면 ~할 것이다' 꼴이다 (3) #3 제안에 '이 안을 죽이는 조건' 2개 이상과 각각을 피하는 설계가 있다 (4) #4 기능마다 '이 관점에서 필요한 이유' 와 근거가 있다 (5) #5 포기한 것 2개 이상 (6) #6 가장 약한 고리 1개 + 이유 (7) 추정은 '추정' 표기 (8) frontmatter 에 type: proposal, status: draft, owner: planning-team:brainstormer, perspective: risk-differentiation, inputs, created 가 전부 있다"
+    },
+    {
+      "id": "judge",
+      "title": "적대적 심사 — 4축 채점·승자 선정",
+      "agent": "planning-team:judge",
+      "inputs": ["{target}", "{brainstorm_a.out}", "{brainstorm_b.out}", "{brainstorm_c.out}"],
+      "outputs": ["_work/plan/{stem}.judge.md"],
+      "prompt": "목표: 세 기획안을 가치·실현가능성·차별성·리스크 4축 1~5점으로 적대적으로 채점해 승자 하나(또는 NONE)와 패자의 살릴 아이디어를 정한다.\n입력: {target}, {brainstorm_a.out}, {brainstorm_b.out}, {brainstorm_c.out} (이 네 파일만 근거. 작성 맥락·옹호성 설명은 없다. 루프백 회차라면 오케스트레이터가 지정한 이전 심사표 *.judge.r<N>.md 는 '#7 재기획 지시' 반영 여부 확인에만 쓴다)\n출력: _work/plan/{stem}.judge.md — plan-format 스킬 2절 양식. frontmatter type: analysis, status: draft, owner: planning-team:judge, winner: A|B|C|NONE, round: <오케스트레이터가 알려준 회차>, inputs: [{target}, {brainstorm_a.out}, {brainstorm_b.out}, {brainstorm_c.out}], created: {today}\n제약: 칭찬·완충 문장 금지. 축 단위로(안 단위가 아니라) 채점한다. 근거 없는 점수 금지 — 근거 칸이 비면 점수 칸도 비우고 '근거 부족' 으로 표기. 세 안을 섞어 네 번째 안을 만들지 않는다. 살릴 아이디어는 패자 파일의 특정 섹션에서 온 것만. 승자 규칙(합계 최고, 동점 시 리스크→실현가능성→가치, 최고 합계<12 또는 전 안에 1점 축이면 NONE)을 따르고 '종합적으로' 는 쓰지 않는다. 원문이 풀려는 문제와 다른 문제를 푸는 안은 가치 1점.\n완료조건: (1) #1 채점표 12칸 전부 정수 점수(또는 '근거 부족') (2) #2 축별 근거 12칸 전부 '점수 → 근거(경로#섹션) → 반박' 구조 (3) #3 승자와 선정 사유 3줄 이내, frontmatter winner 와 일치 (4) #4 승자의 치명 약점 1개 이상 (5) #5 패자별 살릴 아이디어 1개 이상(출처 경로#섹션·이식 방법·이식 비용) 또는 '없음'+이유 (6) #6 버린 것 목록 (7) NONE 이면 #7 에 관점 a/b/c 별 재기획 지시(어느 섹션의 어떤 가정을 바꾸라), 아니면 '해당 없음' (8) frontmatter 에 type: analysis, status: draft, owner: planning-team:judge, winner, round, inputs, created 가 전부 있다"
+    },
+    {
+      "id": "spec",
+      "title": "스펙 — 승자 기반 요구사항",
+      "agent": "planning-team:spec-writer",
+      "inputs": ["{target}", "{judge.out}"],
+      "outputs": ["_work/plan/{stem}.spec.md"],
+      "when": "judge 출력의 winner 가 A|B|C 일 때. NONE 이면 skip 하고 루프백(policy) 또는 에스컬레이션",
+      "prompt": "목표: 심사표가 고른 승자 기획안과 '#5 살릴 아이디어' 만으로 스펙(문제정의·대상·핵심 기능 5개 이내·비기능 요구·범위 밖)을 쓴다.\n입력: {target}, {judge.out}, 그리고 {judge.out} 의 frontmatter winner 가 가리키는 승자 기획안 하나({brainstorm_a.out} | {brainstorm_b.out} | {brainstorm_c.out} 중 하나). 패자 기획안은 읽지 않는다 — 패자에서 가져올 것은 심사표 #5 에 이미 추려져 있다.\n출력: _work/plan/{stem}.spec.md — plan-format 스킬 3절 양식. frontmatter type: spec, status: draft, owner: planning-team:spec-writer, based_on: option-<a|b|c>, inputs: [{target}, {judge.out}, <승자 option 경로>], created: {today}\n제약: 승자 안·심사표에 없는 기능·대상·요구사항을 추가하지 않는다. 심사표 #6 버린 것을 기능으로 되살리지 않는다. 기술 스택·아키텍처 선정 금지. '확정'·'최종'·'승인' 어휘 금지 — 제목에 '(미확정)' 유지. 2,000자 이내. 승자의 치명 약점(심사표 #4)은 기능·비기능·열린 질문 중 어딘가에서 반드시 다룬다. 임의로 정하지 않은 것은 #6 열린 질문으로.\n완료조건: (1) 섹션 1~7 이 번호·제목 그대로 있다 (2) #1 에 성공 지표 1~3개(숫자 또는 관찰 가능한 사건) (3) #3 핵심 기능 5개 이하, 각 행에 사용자 스토리·검사 가능한 수용 기준·출처(option-x#4 또는 judge#5) (4) #4 비기능 요구 각 항목에 수치나 조건 (5) #5 범위 밖에 심사표 #6 버린 것이 빠짐없이 포함 (6) #7 근거 추적표에서 모든 스펙 항목이 경로#섹션으로 되짚어진다 (7) frontmatter 에 type: spec, status: draft, owner: planning-team:spec-writer, based_on, inputs, created 가 전부 있다"
+    },
+    {
+      "id": "plan",
+      "title": "실행 계획 (오케스트레이터, plan-format 4절)",
+      "agent": "orchestrator",
+      "skill": "planning-team:plan-format",
+      "inputs": ["{target}", "{judge.out}", "{spec.out}"],
+      "outputs": ["_work/{stem}.plan.md"],
+      "gate": "G1",
+      "when": "spec 노드가 done 일 때. spec 이 skip(NONE) 이면 이 노드도 skip",
+      "prompt": "목표: 심사표와 스펙을 근거로 실행 계획(마일스톤·산출물·검증 게이트·리스크 대응)을 plan-format 스킬 4절 양식으로 직접 쓴다.\n입력: {target}, {judge.out}, {spec.out} (세 파일에 적힌 것만. 에이전트 결과를 요약·윤색하지 않는다)\n출력: _work/{stem}.plan.md — frontmatter type: plan, status: draft, owner: planning-team, verified_by: [], verify_round: 0, gate: G1-pending, based_on: <judge 의 winner>, inputs: [{target}, {judge.out}, {spec.out}], run: <run_id>, created: {today}\n제약: G1 — 이 기획은 originality 검증(verify-team)을 거치지 않았으므로 '확정'·'최종'·'승인' 이라고 쓰지 않는다. 본문 첫 줄에 양식의 G1 인용문을 그대로 둔다. 마일스톤 M0 는 항상 'originality 검증 통과'. 스펙 #5 범위 밖을 줄이거나 늘리지 않는다. 2,500자 이내.\n완료조건: (1) 섹션 0~6 이 양식대로 있다 (2) #1 마일스톤 표에 M0(G1) 포함, 각 행에 산출물 경로·게이트·완료 기준·의존 (3) #3 검증 게이트 표에 G1·G3 (코드 산출물이 있으면 G2) (4) #4 리스크 대응 표에 judge#4 승자의 치명 약점이 한 행 이상, 각 행에 출처·징후·대응·트리거 (5) #6 다음 액션에 스펙 #6 열린 질문과 '/verify-team:verify _work/{stem}.plan.md' 명시 (6) frontmatter 에 type: plan, status: draft, owner: planning-team, verified_by: [], verify_round: 0, gate: G1-pending, inputs, created 가 전부 있다 — '확정' 어휘 0회"
+    }
+  ]
+}

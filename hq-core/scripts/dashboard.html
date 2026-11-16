@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><title>AI-HQ 관제 — 가계도</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#161616;--bg2:#1f1f1f;--card:#1f1f1f;--card2:#262626;--edge:#333333;--edge2:#454545;
+  --ink:rgba(255,255,255,.87);--ink2:rgba(255,255,255,.60);--ink3:rgba(255,255,255,.38);
+  --teal:#4cc2d0;--teal2:#8fe3ee;--tealsoft:rgba(76,194,208,.13);
+  --ok:#4cc38a;--oksoft:rgba(76,195,138,.14);--bad:#f2555a;--badsoft:rgba(242,85,90,.14);--warn:#e2b93d;--warnsoft:rgba(226,185,61,.14);--dim:#2e2e2e;
+  --display:"Noto Sans KR",sans-serif;--body:"Noto Sans KR","Malgun Gothic",sans-serif;--mono:"JetBrains Mono","IBM Plex Mono",Consolas,monospace}
+*{box-sizing:border-box}html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:13.5px;line-height:1.5;overflow:hidden}
+h1,h2,h3{font-family:var(--display);font-weight:700;margin:0;letter-spacing:-.01em}h1{font-size:18px}h2{font-size:16px;margin-bottom:8px;color:var(--teal2)}h3{font-size:14px;margin:12px 0 4px;color:var(--ink2)}
+button{font-family:var(--body);font-size:12px;border:1px solid var(--edge2);background:var(--card);color:var(--ink);padding:4px 10px;cursor:pointer;border-radius:2px}button:hover{border-color:var(--teal);color:var(--teal2)}button.primary{background:var(--teal);color:#06161a;border-color:var(--teal);font-weight:700}button.danger{color:var(--bad);border-color:var(--bad)}
+input,select,textarea{font-family:var(--body);font-size:13px;border:1px solid var(--edge2);background:var(--bg2);color:var(--ink);padding:6px 8px;width:100%;border-radius:2px}
+.top{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:1px solid var(--edge);background:var(--bg);position:relative;z-index:5}
+.top .l{display:flex;align-items:baseline;gap:14px}.eyebrow{font-size:10.5px;letter-spacing:.18em;color:var(--ink3);font-weight:700}
+.top .r{display:flex;gap:12px;align-items:center;font-size:12px;color:var(--ink2);font-family:var(--mono);font-variant-numeric:tabular-nums}
+.live{display:inline-flex;align-items:center;gap:7px;font-weight:700;color:var(--ok);font-family:var(--body)}.live i{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 4px var(--oksoft);animation:pulse 1.4s infinite}.live.idle{color:var(--ink3)}.live.idle i{background:var(--ink3);box-shadow:none;animation:none}
+@keyframes pulse{0%{box-shadow:0 0 0 2px var(--oksoft)}50%{box-shadow:0 0 0 8px rgba(70,212,138,.05)}100%{box-shadow:0 0 0 2px var(--oksoft)}}
+.stage{position:absolute;top:56px;left:0;right:400px;bottom:0;overflow:hidden;cursor:grab}.stage.drag{cursor:grabbing}
+@media(max-width:1000px){.stage{right:0}.side{display:none}}
+svg{width:100%;height:100%;display:block}
+.hud{position:absolute;left:14px;bottom:14px;display:flex;gap:6px;z-index:3}.hud button{background:var(--bg2)}
+.legend{position:absolute;left:14px;top:12px;display:flex;gap:12px;font-size:11px;color:var(--ink3);z-index:3;background:var(--bg);padding:4px 8px;border:1px solid var(--edge);border-radius:2px}.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;vertical-align:-1px}
+.side{position:absolute;top:56px;right:0;width:400px;bottom:0;border-left:1px solid var(--edge);background:var(--bg2);padding:16px 18px;overflow:auto}
+.tag{display:inline-block;font-size:10px;padding:1px 6px;font-weight:700;letter-spacing:.03em;border-radius:2px;vertical-align:1px}.tag.ok{background:var(--oksoft);color:var(--ok)}.tag.bad{background:var(--badsoft);color:var(--bad)}.tag.warn{background:var(--warnsoft);color:var(--warn)}.tag.dim{background:var(--dim);color:var(--ink2)}.tag.line{background:var(--tealsoft);color:var(--teal2)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:12.5px;margin:6px 0}.kv dt{color:var(--ink3);white-space:nowrap}.kv dd{margin:0;font-family:var(--mono);font-size:11.5px;word-break:break-all;color:var(--ink2)}
+pre{white-space:pre-wrap;font-family:var(--body);font-size:12.5px;background:var(--bg2);border:1px solid var(--edge);padding:8px 10px;max-height:230px;overflow:auto;margin:6px 0;color:var(--ink2)}
+.ev{font-family:var(--mono);font-size:11px;max-height:260px;overflow:auto}.ev div{padding:3px 0;border-bottom:1px dashed var(--edge);display:grid;grid-template-columns:54px 100px 1fr;gap:8px}.ev .t{color:var(--ink3)}.ev .k{font-weight:500}.ev .k.agent{color:var(--teal2)}.ev .k.node{color:var(--ok)}.ev .k.guard{color:var(--bad)}.ev .k.art{color:var(--warn)}
+.now{border-left:3px solid var(--ok);padding:6px 10px;background:var(--oksoft);font-size:12.5px;margin:8px 0}
+.form{display:grid;gap:6px;margin:8px 0;padding:10px;border:1px dashed var(--edge2)}.form label{font-size:11px;color:var(--ink3)}.row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.toast{position:fixed;bottom:16px;left:40%;background:var(--teal);color:#06161a;padding:8px 14px;font-size:12.5px;display:none;z-index:9;font-weight:700}
+.empty{color:var(--ink3);font-size:12.5px;padding:6px 0}
+/* SVG 노드 */
+.node{cursor:pointer}.node rect{fill:var(--card);stroke:var(--edge2);stroke-width:1}.node.sel rect{stroke:var(--teal2);stroke-width:1.6}
+.node.hq rect{fill:var(--card2);stroke:var(--teal)}.node.team rect{stroke:var(--teal)}.node.graph rect{fill:var(--card2)}.node.artifact rect{fill:var(--bg2)}
+.node.live rect{stroke:var(--ok)}.node.failed rect{stroke:var(--bad)}.node.done rect{stroke:var(--edge2)}
+.node text{fill:var(--ink);font-family:var(--body);font-size:12px;letter-spacing:-.01em}.node .t1{font-weight:700}.node.hq .t1{font-size:15px;fill:var(--teal2)}.node .t2{fill:var(--ink3);font-size:10.5px;font-family:var(--mono);font-variant-numeric:tabular-nums}.node .ico{fill:var(--ink3);font-size:9.5px;letter-spacing:.12em;font-weight:700}
+.node .dot{fill:var(--dim)}.node.live .dot{fill:var(--ok)}.node.running .dot{fill:var(--ok)}.node.done .dot{fill:var(--teal)}.node.failed .dot{fill:var(--bad)}.node.skipped .dot{fill:var(--ink3)}
+.node .pulse{fill:none;stroke:var(--ok);stroke-width:1.2;opacity:.7;animation:ring 1.4s infinite}@keyframes ring{0%{r:5;opacity:.8}100%{r:14;opacity:0}}
+.tg circle{fill:var(--bg2);stroke:var(--edge2)}.tg text{fill:var(--ink2);font-size:11px;font-family:var(--mono);text-anchor:middle}.tg:hover circle{stroke:var(--teal)}
+.link{fill:none;stroke:var(--edge2);stroke-width:1.2}.link.live{stroke:var(--ok);stroke-width:1.6}.link.done{stroke:var(--teal);opacity:.8}.link.failed{stroke:var(--bad)}
+.badge rect{fill:var(--dim)}.badge text{font-size:9.5px;font-weight:700;fill:var(--ink2);font-family:var(--body)}.badge.ok rect{fill:var(--oksoft)}.badge.ok text{fill:var(--ok)}.badge.bad rect{fill:var(--badsoft)}.badge.bad text{fill:var(--bad)}.badge.warn rect{fill:var(--warnsoft)}.badge.warn text{fill:var(--warn)}.badge.line rect{fill:var(--tealsoft)}.badge.line text{fill:var(--teal2)}
+#view.z-mid .t2,#view.z-mid .ico{display:none}#view.z-mid .t1{transform:translateY(-4px)}#view.z-far .badge,#view.z-far .tg text{display:none}
+</style></head><body>
+<div class="top">
+  <div class="l"><div><div class="eyebrow">AI-HQ · 관제</div><h1>가계도</h1></div><select id="projsel" style="width:auto;font-size:12px;padding:3px 6px"></select></div>
+  <div class="r"><span id="clock"></span><span class="live idle" id="live"><i></i><b id="livetxt">대기</b></span></div>
+</div>
+<div class="stage" id="stage">
+  <div class="legend"><span><i style="background:var(--ok)"></i>가동</span><span><i style="background:var(--teal)"></i>완료</span><span><i style="background:var(--bad)"></i>실패/반려</span><span><i style="background:var(--dim)"></i>대기</span><span style="margin-left:6px">○ 접기/펼치기 · 드래그 이동 · 휠 확대</span></div>
+  <svg id="svg"><defs><filter id="glow"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><g id="view"></g></svg>
+  <div class="hud"><button id="fit">화면 맞춤</button><button id="expandAll">전부 펼치기</button><button id="collapseAll">팀까지만</button></div>
+</div>
+<div class="side" id="panel"></div>
+<div class="toast" id="toast"></div>
+<script>
+let S=null, SEL={kind:'hq'}, PROJECT=new URLSearchParams(location.search).get('project')||'';
+const COLL=new Set();   // 접힌 노드 id
+let first=true; const VIEW={x:40,y:40,k:1};
+const $=s=>document.querySelector(s);const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const hhmm=ts=>ts?ts.slice(11,19):'';const tagFor=s=>({approved:'ok',rejected:'bad','in-review':'warn',draft:'dim',running:'ok',done:'line',failed:'bad',escalated:'bad',skipped:'dim',pending:'dim'}[s]||'dim');
+function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2600)}
+async function post(url,body){const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});return r.json()}
+function agentLive(name){return S&&S.live_types.includes(name)}
+const KO_TEAM={'hq-core':'하네스 (본부 인프라)','verify-team':'검증팀','planning-team':'기획팀','research-team':'조사팀','design-team':'디자인팀','class-team':'수업팀','invest-team':'투자팀','career-team':'취업팀'};
+const KO_AGENT={'originality-checker':'선행사례 조사관','red-team':'레드팀 (반박)','brainstormer':'브레인스토머','judge':'심사관','spec-writer':'스펙 작성자','web-researcher':'웹 조사원','synthesizer':'종합자','fact-checker':'사실확인관','visual-designer':'비주얼 디자이너','design-critic':'디자인 비평가','deck-writer':'발표자료 작성자','notetaker':'노트 정리','quiz-maker':'문제 출제','examiner':'검사관','assignment-coach':'과제 코치'};
+const koTeam=n=>{const t=(S&&S.teams||[]).find(x=>x.name===n);return (t&&t.displayName)||KO_TEAM[n]||n}; const koAgent=n=>KO_AGENT[n]||n;
+// 폭 기준 말줄임: 한글 ≈ 1.0em, 영숫자 ≈ 0.58em
+function fitText(s,maxPx,px){s=String(s||'');let w=0,out='';for(const ch of s){const cw=(/[ᄀ-ᇿ㄰-㆏가-힯一-鿿]/.test(ch)?1.0:0.58)*px;if(w+cw>maxPx-10){return out+'…'}w+=cw;out+=ch;}return out}
+
+/* ---------- 트리 구성: 본부 → 팀 → (에이전트 | 그래프 → 노드 → 산출물) ---------- */
+function buildTree(){
+  const R=S.current; const runGraph=R?R.graph:null; const nodeState={}; const nodeOut={};
+  if(R){R.nodes.forEach(n=>{nodeState[n.id]=n.state;nodeOut[n.id]=n.outputs;});}
+  const artByFile={}; S.artifacts.forEach(a=>artByFile[a.file]=a);
+  const root={id:'hq',kind:'hq',label:'AI-HQ 본부',sub:'오케스트레이터 · 준용 + Claude',children:[]};
+  S.teams.forEach(t=>{
+    const tn={id:'team:'+t.name,kind:'team',label:koTeam(t.name),sub:t.name+' · v'+t.version+' · 에이전트 '+t.agents.length+(t.graphs.length?' · 그래프 '+t.graphs.length:''),team:t.name,children:[],live:false};
+    t.agents.forEach(a=>{const live=agentLive(a.name);if(live)tn.live=true;tn.children.push({id:'agent:'+t.name+':'+a.name,kind:'agent',label:koAgent(a.name),sub:a.name+' · '+(a.model||'inherit'),team:t.name,name:a.name,live,children:[]});});
+    t.graphs.forEach(g=>{const isRun=runGraph===t.name+'/'+g.name; const gn={id:'graph:'+t.name+':'+g.name,kind:'graph',label:g.name,sub:(g.title||'').slice(0,28),team:t.name,graph:g.name,children:[],live:isRun&&S.is_live,isRun};
+      if(isRun&&S.is_live)tn.live=true;
+      g.nodes.forEach(n=>{const st=isRun?(nodeState[n.id]||'pending'):''; const nn={id:'node:'+t.name+':'+g.name+':'+n.id,kind:'node',label:n.title||n.id,sub:(n.agent||'orchestrator').split(':').pop(),state:st,team:t.name,graph:g.name,node:n.id,agent:n.agent,children:[]};
+        if(isRun)(nodeOut[n.id]||[]).forEach(o=>{const a=artByFile[o];nn.children.push({id:'art:'+o,kind:'artifact',label:o.split('/').pop(),sub:a?(a.type||'')+(a.status?' · '+a.status:''):'(아직 없음)',status:a?a.status:'',file:o,exists:!!a,children:[]});});
+        gn.children.push(nn);});
+      tn.children.push(gn);});
+    if(t.name==='hq-core'){t.skills.forEach(s=>tn.children.push({id:'skill:'+s,kind:'tool',label:s,sub:'스킬',children:[]}));if(t.hooks.length)tn.children.push({id:'hooks',kind:'tool',label:'훅 '+t.hooks.length,sub:t.hooks.join(' · ').slice(0,40),children:[]});}
+    root.children.push(tn);
+  });
+  if(first){ // 초기 접기: 현재 run 그래프만 펼치고 나머지 그래프·hq-core 도구는 접는다
+    root.children.forEach(tn=>tn.children.forEach(c=>{if(c.kind==='graph'&&!c.isRun)COLL.add(c.id);}));
+    first=false;}
+  return root;
+}
+/* ---------- 레이아웃: 가로 tidy tree ---------- */
+const NW={hq:240,team:210,agent:176,graph:190,node:190,artifact:210,tool:160}, NH={hq:64,team:62,agent:52,graph:58,node:58,artifact:52,tool:50}, GX=76, GY=14;
+function layout(root){
+  let y=0; const pos=[];
+  function walk(n,depth,x){
+    n.depth=depth; n.w=NW[n.kind]; n.h=NH[n.kind]; n.x=x; n.collapsed=COLL.has(n.id); const kids=n.collapsed?[]:n.children;
+    if(!kids.length){n.y=y; y+=n.h+GY; n.leafN=1;}
+    else{let cx=x+n.w+GX; kids.forEach(c=>walk(c,depth+1,cx)); n.y=(kids[0].y+kids[kids.length-1].y+kids[kids.length-1].h-n.h)/2; n.leafN=kids.reduce((a,c)=>a+c.leafN,0);}
+    pos.push(n);}
+  walk(root,0,0); return pos;
+}
+function linkPath(a,b){const x1=a.x+a.w,y1=a.y+a.h/2,x2=b.x,y2=b.y+b.h/2,mx=(x1+x2)/2;return `M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`}
+function stateClass(n){if(n.kind==='node'&&n.state)return n.state==='running'?'live running':n.state;if(n.kind==='artifact')return n.status==='approved'?'done':n.status==='rejected'?'failed':'';return n.live?'live':''}
+function renderTree(){
+  const root=buildTree(); const nodes=layout(root); const g=$('#view'); let svg='';
+  nodes.forEach(n=>{if(n.collapsed)return;n.children.forEach(c=>{const cls=c.kind==='node'?(c.state==='running'?'live':c.state==='done'?'done':c.state==='failed'?'failed':''):(c.live?'live':'');svg+=`<path class="link ${cls}" d="${linkPath(n,c)}"/>`;});});
+  nodes.forEach(n=>{const sel=(SEL.id===n.id)?'sel':'';const sc=stateClass(n);
+    svg+=`<g class="node ${n.kind} ${sc} ${sel}" data-id="${esc(n.id)}" transform="translate(${n.x},${n.y})">`;
+    svg+=`<rect width="${n.w}" height="${n.h}" rx="3"/>`;
+    const ico={hq:'HQ',team:'TEAM',agent:'AGENT',graph:'GRAPH',node:'NODE',artifact:'FILE',tool:'SKILL'}[n.kind];
+    const koIco={hq:'본부',team:'팀',agent:'에이전트',graph:'그래프',node:'노드',artifact:'파일',tool:'스킬'}[n.kind];
+    svg+=`<text class="ico" x="10" y="14">${ico} · ${koIco}</text>`;
+    svg+=`<text class="t1" x="10" y="${n.kind==='hq'?38:33}">${esc(fitText(n.label,n.w-30,n.kind==='hq'?15:12))}</text>`;
+    if(n.sub)svg+=`<text class="t2" x="10" y="${n.h-9}">${esc(fitText(n.sub,n.w-16,10.5))}</text>`;
+    if(n.kind==='agent'||n.kind==='node'||n.kind==='artifact'||n.kind==='graph'||n.kind==='team'){svg+=`<circle class="dot" cx="${n.w-12}" cy="13" r="4.5"/>`;if(sc.includes('live'))svg+=`<circle class="pulse" cx="${n.w-12}" cy="13" r="5"/>`;}
+    if(n.kind==='node'&&n.state){const b=tagFor(n.state);svg+=`<g class="badge ${b}" transform="translate(${n.w-70},6)"><rect width="50" height="14" rx="2"/><text x="25" y="10.5" text-anchor="middle">${esc(n.state)}</text></g>`;}
+    svg+=`</g>`;
+    if(n.children.length){svg+=`<g class="tg" data-tg="${esc(n.id)}" transform="translate(${n.x+n.w},${n.y+n.h/2})"><circle r="8"/><text y="4">${n.collapsed?'+':'−'}</text></g>`;}
+  });
+  g.innerHTML=svg; g.setAttribute('transform',`translate(${VIEW.x},${VIEW.y}) scale(${VIEW.k})`);
+  g.classList.toggle('z-mid',VIEW.k<0.55); g.classList.toggle('z-far',VIEW.k<0.4);
+  g.querySelectorAll('.node').forEach(el=>el.onclick=e=>{e.stopPropagation();const n=nodes.find(x=>x.id===el.dataset.id);SEL=Object.assign({id:n.id},n);renderTree();renderPanel();});
+  g.querySelectorAll('.tg').forEach(el=>el.onclick=e=>{e.stopPropagation();const id=el.dataset.tg;COLL.has(id)?COLL.delete(id):COLL.add(id);renderTree();});
+  window._nodes=nodes;
+}
+function fit(){const ns=window._nodes||[];if(!ns.length)return;const W=$('#stage').clientWidth,H=$('#stage').clientHeight;const maxX=Math.max(...ns.map(n=>n.x+n.w)),maxY=Math.max(...ns.map(n=>n.y+n.h));const k=Math.min(1,(W-60)/maxX,(H-80)/maxY);VIEW.k=Math.max(.35,k);VIEW.x=30;VIEW.y=Math.max(30,(H-maxY*VIEW.k)/2);renderTree();}
+/* 팬/줌 */
+(function(){const st=$('#stage');let drag=null;st.addEventListener('mousedown',e=>{if(e.target.closest('.node,.tg,button'))return;drag={x:e.clientX-VIEW.x,y:e.clientY-VIEW.y};st.classList.add('drag');});window.addEventListener('mousemove',e=>{if(!drag)return;VIEW.x=e.clientX-drag.x;VIEW.y=e.clientY-drag.y;$('#view').setAttribute('transform',`translate(${VIEW.x},${VIEW.y}) scale(${VIEW.k})`);});window.addEventListener('mouseup',()=>{drag=null;st.classList.remove('drag');});
+st.addEventListener('wheel',e=>{e.preventDefault();const k0=VIEW.k;const k=Math.min(2.2,Math.max(.3,k0*(e.deltaY<0?1.1:0.9)));const r=st.getBoundingClientRect();const mx=e.clientX-r.left,my=e.clientY-r.top;VIEW.x=mx-(mx-VIEW.x)*k/k0;VIEW.y=my-(my-VIEW.y)*k/k0;VIEW.k=k;const v=$('#view');v.setAttribute('transform',`translate(${VIEW.x},${VIEW.y}) scale(${VIEW.k})`);v.classList.toggle('z-mid',k<0.55);v.classList.toggle('z-far',k<0.4);},{passive:false});
+$('#fit').onclick=fit;$('#expandAll').onclick=()=>{COLL.clear();renderTree();};$('#collapseAll').onclick=()=>{(window._nodes||[]).forEach(n=>{if(n.kind==='team')COLL.add(n.id)});renderTree();};})();
+
+/* ---------- 패널 ---------- */
+function renderPanel(){
+  const P=$('#panel'); const T=S.teams; const R=S.current;
+  if(SEL.kind==='hq'||!SEL.kind){P.innerHTML=`<h2>본부 <span class="tag line">오케스트레이터</span></h2><p style="font-size:12.5px;color:var(--ink2)">메인 Claude 세션이 그래프를 읽고 팀을 부른다. 레저: <code>projects/${esc(S.project_name)}/runs/</code></p>
+    ${R?`<div class="now">${S.is_live?'지금':'마지막'}: <b>${esc(R.graph)}</b> · ${esc(R.status)}${R.running_node?' · <b>'+esc(R.running_node.title||R.running_node.id)+'</b> 진행 중':''}<br><span style="font-family:var(--mono);font-size:11px;color:var(--ink3)">${esc(R.run_id)}</span></div>`:'<div class="empty">run 없음</div>'}
+    <h3>팀</h3>${T.map(t=>`<div class="kv"><dt>${esc(t.name)}</dt><dd>${esc(t.desc)}</dd></div>`).join('')}
+    <h3>최근 run</h3>${S.runs.map(r=>`<div style="font-family:var(--mono);font-size:11px;display:flex;justify-content:space-between;border-bottom:1px dashed var(--edge);padding:3px 0"><span>${esc(r.run_id)}</span><span class="tag ${tagFor(r.status)}">${esc(r.status||'?')}</span></div>`).join('')||'<div class="empty">없음</div>'}
+    <h3>게이트 G3</h3><div>${S.gate.ok?'<span class="tag ok">통과</span>':'<span class="tag bad">위반 '+S.gate.violations.length+'</span>'} <span style="font-size:11.5px;color:var(--ink3)">deliverables/ ${S.gate.deliverables}개</span></div>
+    <div class="row"><button data-act="addteam">+ 팀 추가</button></div>`;P.querySelector('[data-act=addteam]').onclick=()=>{SEL={kind:'addteam'};renderPanel();};return}
+  if(SEL.kind==='addteam'){P.innerHTML=`<h2>팀 추가</h2><div class="form"><label>이름 (영문 slug)</label><input id="f-name" placeholder="invest-team"><label>한글 이름</label><input id="f-title" placeholder="투자팀"><label>무슨 일을 하는 팀인가</label><textarea id="f-desc" rows="3"></textarea><div class="row"><button class="primary" id="f-go">만들기</button><button id="f-cancel">취소</button></div></div><p style="font-size:12px;color:var(--ink3)">teams/&lt;이름&gt;/ 뼈대 + 마켓플레이스 등록. 에이전트·그래프는 그 다음. 새 세션부터 로드.</p>`;
+    $('#f-go').onclick=async()=>{const r=await post('/api/team/add',{name:$('#f-name').value,title:$('#f-title').value,desc:$('#f-desc').value});toast(r.ok?'팀 생성됨':'실패: '+r.error);if(r.ok){SEL={kind:'team',team:$('#f-name').value.trim().toLowerCase(),id:'team:'+$('#f-name').value.trim().toLowerCase()};await tick();}};$('#f-cancel').onclick=()=>{SEL={kind:'hq'};renderPanel();};return}
+  if(SEL.kind==='addagent'){P.innerHTML=`<h2>에이전트 추가 <span class="tag dim">${esc(SEL.team)}</span></h2><div class="form"><label>이름 (영문 slug)</label><input id="f-name" placeholder="market-scanner"><label>한글 역할명</label><input id="f-title"><label>한 줄 설명 (언제 부르는지)</label><textarea id="f-desc" rows="3"></textarea><label>종류</label><select id="f-kind"><option value="collect">수집형 (검색·요약, sonnet)</option><option value="make">제작형 (코드·문서)</option><option value="judge" selected>판단형 (심사·반박·종합)</option></select><div class="row"><button class="primary" id="f-go">만들기</button><button id="f-cancel">취소</button></div></div>`;
+    $('#f-go').onclick=async()=>{const r=await post('/api/agent/add',{team:SEL.team,name:$('#f-name').value,title:$('#f-title').value,desc:$('#f-desc').value,kind:$('#f-kind').value});toast(r.ok?'에이전트 생성됨':'실패: '+r.error);if(r.ok){SEL={kind:'team',team:SEL.team,id:'team:'+SEL.team};await tick();}};$('#f-cancel').onclick=()=>{SEL={kind:'team',team:SEL.team,id:'team:'+SEL.team};renderPanel();};return}
+  const t=T.find(x=>x.name===SEL.team);
+  if(SEL.kind==='team'&&t){const mine=R&&(R.graph||'').startsWith(t.name+'/');
+    P.innerHTML=`<h2>${esc(koTeam(t.name))} <small style="font-family:var(--mono);font-size:11px;color:var(--ink3)">${esc(t.name)} v${esc(t.version)}</small></h2><p style="font-size:12.5px;color:var(--ink2)">${esc(t.desc)}</p>
+    ${mine?`<div class="now">${S.is_live?'지금 운행 중':'마지막 운행'}: <b>${esc(R.graph)}</b> · ${esc(R.status)}${R.running_node?' · <b>'+esc(R.running_node.title||R.running_node.id)+'</b>':''}</div>`:''}
+    <h3>에이전트 ${t.agents.length}</h3>${t.agents.map(a=>`<div class="kv"><dt>${esc(a.name)}${agentLive(a.name)?' <span class="tag ok">가동</span>':''}</dt><dd>${esc(a.desc).slice(0,90)}</dd></div>`).join('')||'<div class="empty">없음 (하네스/스킬 팀)</div>'}
+    <h3>그래프</h3>${t.graphs.map(g=>`<div class="kv"><dt>${esc(g.name)}</dt><dd>${g.nodes.map(n=>esc(n.id)).join(' → ')}</dd></div>`).join('')||'<div class="empty">없음</div>'}
+    <h3>커맨드 · 스킬 · 훅</h3><div class="kv">${t.commands.map(c=>`<dt>/${esc(t.name)}:${esc(c.name)}</dt><dd>${esc(c.desc)}</dd>`).join('')}${t.skills.length?`<dt>스킬</dt><dd>${t.skills.map(esc).join(', ')}</dd>`:''}${t.hooks.length?`<dt>훅</dt><dd>${t.hooks.map(esc).join(', ')}</dd>`:''}</div>
+    <div class="row"><button data-act="addagent">+ 에이전트</button><button onclick="navigator.clipboard.writeText('${esc(t.root)}');toast('경로 복사됨')">폴더 경로</button>${t.name!=='hq-core'?'<button class="danger" data-act="rmteam">팀 제거(보관)</button>':''}</div>`;
+    P.querySelector('[data-act=addagent]').onclick=()=>{SEL={kind:'addagent',team:t.name};renderPanel();};const rm=P.querySelector('[data-act=rmteam]');if(rm)rm.onclick=async()=>{if(!confirm(t.name+' 팀을 보관함으로 옮길까요?'))return;const r=await post('/api/remove',{kind:'team',team:t.name});toast(r.ok?'보관됨':'실패: '+r.error);SEL={kind:'hq'};await tick();};return}
+  if(SEL.kind==='agent'&&t){const a=t.agents.find(x=>x.name===SEL.name);if(!a){SEL={kind:'hq'};renderPanel();return}
+    const act=S.activity[a.name]||{events:[],runs:[]};const live=agentLive(a.name);const nodeNow=R&&R.running_node&&(R.running_node.agent||'').endsWith(':'+a.name)?R.running_node:null;const mine=S.artifacts.filter(x=>(x.owner||'').endsWith(a.name)).slice(0,8);
+    P.innerHTML=`<h2>${esc(koAgent(a.name))} <small style="font-family:var(--mono);font-size:11px;color:var(--ink3)">${esc(a.name)}</small> ${live?'<span class="tag ok">가동 중</span>':'<span class="tag dim">대기</span>'}</h2><div class="kv"><dt>팀</dt><dd>${esc(t.name)}</dd><dt>모델</dt><dd>${esc(a.model||'inherit')}</dd><dt>도구</dt><dd>${esc(a.tools)}</dd></div>
+    ${live||nodeNow?`<div class="now">지금: ${nodeNow?'<b>'+esc(nodeNow.title||nodeNow.id)+'</b> 노드 작업 중':'서브에이전트 실행 중'} (run ${esc(R.run_id)})</div>`:''}
+    <h3>언제 불리나</h3><p style="font-size:12.5px;color:var(--ink2)">${esc(a.desc)}</p><h3>역할 정의</h3><pre>${esc(a.body)}</pre>
+    <h3>최근 활동</h3>${act.events.length?act.events.slice().reverse().map(e=>`<div style="font-family:var(--mono);font-size:11px;border-bottom:1px dashed var(--edge);padding:3px 0"><span style="color:var(--ink3)">${esc((e.ts||'').slice(5,16).replace('T',' '))}</span> ${esc(e.event)}${e.detail&&e.detail.file?' '+esc(e.detail.file):''}${e.detail&&e.detail.last_message?'<div style="color:var(--ink2);white-space:pre-wrap">'+esc(e.detail.last_message.slice(0,160))+'</div>':''}</div>`).join(''):'<div class="empty">기록 없음 (훅 추적은 새 세션부터 쌓임)</div>'}
+    <h3>이 에이전트의 산출물</h3>${mine.map(x=>`<div style="font-family:var(--mono);font-size:11px;display:flex;justify-content:space-between;gap:6px;border-bottom:1px dashed var(--edge);padding:3px 0"><span>${esc(x.file)}</span><span class="tag ${tagFor(x.status)}">${esc(x.status)}</span></div>`).join('')||'<div class="empty">없음</div>'}
+    <div class="row"><button onclick="navigator.clipboard.writeText('${esc(a.file)}');toast('파일 경로 복사됨')">파일 경로</button><button class="danger" data-act="rmagent">제거(보관)</button></div>`;
+    P.querySelector('[data-act=rmagent]').onclick=async()=>{if(!confirm(a.name+' 을 보관함으로 옮길까요?'))return;const r=await post('/api/remove',{kind:'agent',team:t.name,name:a.name});toast(r.ok?'보관됨':'실패: '+r.error);SEL={kind:'team',team:t.name,id:'team:'+t.name};await tick();};return}
+  if(SEL.kind==='graph'&&t){const g=t.graphs.find(x=>x.name===SEL.graph);const isRun=R&&R.graph===t.name+'/'+g.name;
+    P.innerHTML=`<h2>${esc(t.name)}/${esc(g.name)}</h2><p style="font-size:12.5px;color:var(--ink2)">${esc(g.title)}</p>${isRun?`<div class="now">${S.is_live?'운행 중':'마지막 운행'} · ${esc(R.status)} · run ${esc(R.run_id)}</div>`:''}
+    <h3>노드 순서</h3>${g.nodes.map(n=>{const st=isRun?(R.nodes.find(x=>x.id===n.id)||{}).state:'';return `<div class="kv"><dt>${esc(n.id)}${st?' <span class="tag '+tagFor(st)+'">'+esc(st)+'</span>':''}</dt><dd>${esc(n.title)} · ${esc((n.agent||'orchestrator').split(':').pop())}</dd></div>`}).join('')}
+    ${isRun?`<h3>이벤트</h3><div class="ev">${[...R.events].reverse().slice(0,60).map(e=>{const k=e.event||'';const cls=k.startsWith('agent')?'agent':k.startsWith('node')?'node':k.startsWith('guard')?'guard':k.startsWith('artifact')?'art':'';let d='';if(k.startsWith('agent'))d=esc((e.agent_type||'').split(':').pop());else if(k.startsWith('node'))d=esc(e.node||'')+(e.detail&&e.detail.note?' — '+esc(e.detail.note):'');else if(k==='artifact.write')d=esc(e.detail.file);else if(k==='guard.deny')d=esc(e.detail.file)+' · '+esc(e.detail.rule);else if(k==='run.start')d=esc(e.detail.graph);else if(k==='run.end')d=esc(e.detail.status);return `<div><span class="t">${hhmm(e.ts)}</span><span class="k ${cls}">${esc(k)}</span><span>${d}</span></div>`}).join('')}</div>`:''}
+    <h3>실행</h3><div style="font-family:var(--mono);font-size:11.5px;color:var(--ink2)">/hq-core:run ${esc(t.name)}/${esc(g.name)} &lt;입력&gt;</div>`;return}
+  if(SEL.kind==='node'&&t){const n=R&&R.nodes.find(x=>x.id===SEL.node);P.innerHTML=`<h2>${esc(SEL.label)} ${n&&n.state?'<span class="tag '+tagFor(n.state)+'">'+esc(n.state)+'</span>':''}</h2><div class="kv"><dt>그래프</dt><dd>${esc(t.name)}/${esc(SEL.graph)}</dd><dt>담당</dt><dd>${esc(SEL.agent||'orchestrator')}</dd>${n?`<dt>시작</dt><dd>${esc(n.start||'-')}</dd><dt>종료</dt><dd>${esc(n.end||'-')}</dd>`:''}</div>${n?`<h3>출력</h3>${n.outputs.map(o=>{const a=S.artifacts.find(x=>x.file===o);return `<div style="font-family:var(--mono);font-size:11px;display:flex;justify-content:space-between;border-bottom:1px dashed var(--edge);padding:3px 0"><span>${esc(o)}</span>${a?'<span class="tag '+tagFor(a.status)+'">'+esc(a.status)+'</span>':'<span class="tag dim">없음</span>'}</div>`}).join('')}`:''}`;return}
+  if(SEL.kind==='artifact'){const a=S.artifacts.find(x=>x.file===SEL.file);P.innerHTML=`<h2>${esc(SEL.label)}</h2><div class="kv"><dt>경로</dt><dd>${esc(SEL.file)}</dd>${a?`<dt>type</dt><dd>${esc(a.type)}</dd><dt>status</dt><dd><span class="tag ${tagFor(a.status)}">${esc(a.status)}</span>${a.round?' r'+esc(a.round):''}</dd><dt>owner</dt><dd>${esc(a.owner)}</dd>${a.verdict?`<dt>verdict</dt><dd>${esc(a.verdict)}</dd>`:''}<dt>수정</dt><dd>${esc(a.mtime_h)}</dd>`:'<dt>상태</dt><dd>아직 생성되지 않음</dd>'}</div>`;return}
+  if(SEL.kind==='tool'){P.innerHTML=`<h2>${esc(SEL.label)}</h2><p style="font-size:12.5px;color:var(--ink2)">${esc(SEL.sub)}</p>`;return}
+  SEL={kind:'hq'};renderPanel();
+}
+function renderProjects(){const sel=$('#projsel');sel.innerHTML=S.projects.map(p=>`<option value="${esc(p.path)}" ${p.path===S.project?'selected':''}>${esc(p.name)}${p.live?' ●':''} (${p.runs})</option>`).join('');sel.onchange=()=>{PROJECT=sel.value;first=true;COLL.clear();tick(true);};}
+async function tick(refit){try{const r=await fetch('/api/state'+(PROJECT?'?project='+encodeURIComponent(PROJECT):''),{cache:'no-store'});S=await r.json();$('#clock').textContent=S.now.slice(5,19).replace('T',' ');const lv=$('#live');lv.className='live'+(S.is_live?'':' idle');$('#livetxt').textContent=S.is_live?'가동 중':'대기';renderProjects();renderTree();if(refit||window._firstFit===undefined){window._firstFit=true;setTimeout(fit,50);}renderPanel();}catch(e){}}
+tick();setInterval(()=>tick(false),2000);
+</script></body></html>

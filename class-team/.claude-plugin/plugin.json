@@ -1,0 +1,9 @@
+{
+  "name": "class-team",
+  "version": "0.1.0",
+  "description": "수업팀. 강의자료 하나(md/pdf/txt)를 받아 핵심 개념 노트(notetaker)와 문제 10개(quiz-maker)를 병렬로 만들고, 원문 대조 적대적 검사(examiner)를 거쳐 vault courses/ 호환 수업 노트(course-note 규격)로 올린다(graphs/study.json). 과제 설명 md 는 요구사항 분해 → 해결 초안(assignment-coach) → 채점자 관점 적대적 검토(examiner) → 제출 전 체크리스트(assignment-plan 규격)로 흐른다(graphs/assignment.json). hq-core 그래프 규약으로 실행되어 runs/ 에 기록된다. 과제 제출본을 대신 쓰지 않고 설계·개요·계획까지만 만든다.",
+  "author": {
+    "name": "Junyong"
+  },
+  "displayName": "수업팀"
+}

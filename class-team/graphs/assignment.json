@@ -1,0 +1,52 @@
+{
+  "name": "assignment",
+  "team": "class-team",
+  "version": 1,
+  "title": "요구사항 분해 → 해결 초안/계획 → 채점자 관점 적대적 검토 → 제출 전 체크리스트·수정 계획",
+  "inputs": {
+    "target": "과제 설명 md 경로 (프로젝트 루트 기준, 예: _work/hw2.md)",
+    "course": "과목명 (공백 없이)"
+  },
+  "policy": {
+    "max_rounds": 2,
+    "escalate_to": "human",
+    "on_fail": "loopback",
+    "loopback_to": "draft (grade #2 에 req 누락·오해 지적이 있으면 decompose 부터)",
+    "fail_when": "grade 출력의 grade_verdict 가 REVISE 또는 FAIL. 이전 채점표는 _work/class/<stem>.grade.r<회차>.md, 이전 초안은 .draft.r<회차>.md 로 보존하고 #6 수정 요구를 재작성 노드의 추가 입력으로 준다. round ≥ max_rounds 에서 또 REVISE/FAIL 이면 escalate"
+  },
+  "nodes": [
+    {
+      "id": "decompose",
+      "title": "요구사항 분해 — 제출물·제약·채점 기준 추정·마감",
+      "agent": "class-team:assignment-coach",
+      "inputs": ["{target}"],
+      "outputs": ["_work/class/{stem}.req.md"],
+      "prompt": "목표: 과제 설명 {target} (과목: {course}) 의 요구사항을 제출물·제약·채점 기준(원문 배점 또는 [추정])·마감·질문할 것·암묵 요구로 분해한 요구사항 표 1개를 쓴다. 요구사항마다 R-ID 와 검사 가능한 완료 기준을 단다.\n입력: {target} (이 파일만 근거로 삼는다. 같은 과목의 다른 과제·이전 초안·vault 노트는 읽지 않는다. 루프백 회차라면 오케스트레이터가 추가로 지정한 _work/class/{stem}.grade.r<N>.md 의 '#2 요구사항 분해 지적' 과 '#6 수정 요구' 중 대상이 req 인 행만 더 읽는다)\n출력: _work/class/{stem}.req.md — assignment-plan 스킬 1절 요구사항 표 양식. frontmatter type: analysis, status: draft, owner: class-team:assignment-coach, course: {course}, assignment: <과제명>, due: <마감 또는 '원문에 없음'>, requirements_count: <R 개수>, inputs: [{target}], created: {today}\n제약: 과제 설명 밖 요구를 원문 요구처럼 쓰지 않는다(암묵 요구는 [추정] 3개 이하). 모호한 문장은 임의로 해석하지 않고 #5 로. '잘 구현' 류 검사 불가능한 완료 기준 금지. 원문 문단 복붙 금지. 칭찬·완충 문장 금지. 2,500자 이내.\n완료조건: (1) 섹션 0~6 이 번호·제목 그대로 있다 (2) #0 AI·협업 규정이 원문 인용+위치 또는 '원문에 없음' (3) #1·#2 행마다 R-ID·완료 기준·원문 위치 (4) #3 채점 기준에 배점과 근거(원문 위치 또는 [추정]+이유), 합이 만점 (5) #4 마감·제출 경로에 원문 위치 (6) requirements_count 가 R-ID 총수와 일치 (7) frontmatter 에 type: analysis, status: draft, owner: class-team:assignment-coach, course, assignment, due, requirements_count, inputs, created 가 전부 있다 — type/status/owner 가 빠지면 node done 이 실패한다"
+    },
+    {
+      "id": "draft",
+      "title": "해결 초안/계획 — 코드면 설계+테스트 계획, 글이면 개요+근거 계획",
+      "agent": "class-team:assignment-coach",
+      "inputs": ["{target}", "{decompose.out}"],
+      "outputs": ["_work/class/{stem}.draft.md"],
+      "prompt": "목표: 요구사항 표 {decompose.out} 의 모든 R-ID 에 대응하는 과제 해결 초안/계획 1개를 쓴다. 코드 과제면 설계+테스트 계획, 글 과제면 개요+근거 계획, 혼합이면 둘 다. 말미에 R-ID ↔ 초안 위치 대응표와 마감 역산표를 둔다.\n입력: {target}, {decompose.out} (이 두 파일만 근거. vault 노트·웹 금지. 루프백 회차라면 오케스트레이터가 추가로 지정한 _work/class/{stem}.grade.r<N>.md 의 '#6 수정 요구' 중 대상이 draft 인 행을 전부 반영하고 #6 회차 반영에 처리 내역을 남긴다. 이전 초안 .draft.r<N>.md 는 R-ID·항목 번호 유지 확인에만 쓴다)\n출력: _work/class/{stem}.draft.md — assignment-plan 스킬 2절 초안 양식. frontmatter type: design, status: draft, owner: class-team:assignment-coach, course: {course}, assignment: <req 의 assignment>, kind: code|writing|mixed, round: <오케스트레이터가 알려준 회차>, inputs: [{target}, {decompose.out}], created: {today}\n제약: 제출물을 통째로 완성해 주지 않는다 — 구조·설계·테스트 계획·개요·근거 계획 수준. req #0 AI·협업 규정을 #0 에 그대로 옮기고 그 규정을 넘지 않는다. 출처 없는 인용·수치·코드 조각 금지([추정]+'확인 필요'). 요구사항 표에 없는 항목은 #7 범위 밖에만. R-ID 를 바꾸지 않는다. 칭찬·완충 문장 금지. 5,000자 이내.\n완료조건: (1) 섹션 0~7 이 번호·제목 그대로 있다 (2) kind 에 맞는 #2 하위 절(code: 설계·테스트 계획·핵심 코드 조각 / writing: 개요·근거 계획 / mixed: 둘 다)이 있고 항목마다 대응 R-ID (3) code 면 테스트 계획에 R-ID 별 테스트·경계/실패 케이스, writing 이면 근거 계획에 주장별 '가진 것/찾을 것'·출처 (4) #3 대응표에 req 의 모든 R-ID 가 행으로 있고 상태 표기 (5) #4 마감 역산표에 항목별 예상 소요·막힐 지점·시작 기한 (6) #5 표절·출처 자가 점검 비어 있지 않음 (7) 재작성 회차면 #6 에 수정 요구 처리 내역 전부, 첫 회차면 '해당 없음' (8) frontmatter 에 type: design, status: draft, owner: class-team:assignment-coach, course, assignment, kind, round, inputs, created 가 전부 있다 — type/status/owner 가 빠지면 node done 이 실패한다"
+    },
+    {
+      "id": "grade",
+      "title": "채점자 관점 적대적 검토 — 누락·표절 위험·근거 부실·예상 점수",
+      "agent": "class-team:examiner",
+      "inputs": ["{target}", "{decompose.out}", "{draft.out}"],
+      "outputs": ["_work/class/{stem}.grade.md"],
+      "prompt": "목표: 과제 채점 조교 관점에서 {draft.out} 을 과제 설명 {target} 의 요구사항에 대고 깎는다. 요구사항 충족·근거/논리·표절·출처 위험·형식·제출 규정 네 축으로 감점 사유와 근거를 쓰고, 예상 점수와 grade_verdict(PASS|REVISE|FAIL) 를 낸다. {decompose.out} 의 요구사항 분해 누락·오해도 잡는다.\n입력: {target} 을 먼저 읽고 검사관 자신의 요구사항 목록을 만든 뒤 {decompose.out}, {draft.out} 을 읽는다 (이 세 파일만 근거. 작성 맥락·옹호성 설명은 없다. 재검사 회차라면 오케스트레이터가 지정한 이전 채점표 _work/class/{stem}.grade.r<N>.md 는 '#6 수정 요구' 반영 여부 확인에만 쓴다)\n출력: _work/class/{stem}.grade.md — assignment-plan 스킬 3절 채점표 양식. frontmatter type: analysis, status: draft, owner: class-team:examiner, course: {course}, assignment: <req 의 assignment>, grade_verdict: PASS|REVISE|FAIL, expected_score: <예상 점수>, max_score: <만점>, round: <오케스트레이터가 알려준 회차>, inputs: [{target}, {decompose.out}, {draft.out}], created: {today}\n제약: 칭찬·완충 문장 금지. 고쳐 쓰지 않는다. 감점마다 근거(req#R-ID / draft#섹션 / 원문 위치) 필수. 검사관 요구사항 목록 전부에 대해 req·draft 대응을 확인한다(표본 금지). 판정 규칙(필수 제출물 누락 또는 표절 위험 항목 ≥1 → FAIL / 요구사항 누락 ≥2 또는 근거 부실 MAJOR ≥2 → REVISE / 그 외 PASS)을 재량으로 완화하지 않는다. 표절 위험은 의심만으로 단정하지 않고 '확인 필요' 로 쓰되 확인 전까지 위험 항목으로 센다. 원문·req·draft 외 파일·웹 금지.\n완료조건: (1) #1 검사관 요구사항 목록에 요구마다 원문 위치·req 유무(R-ID)·draft 유무(draft#) (2) #2 req 지적 행마다 심각도·원문 위치(없으면 '없음') (3) #3 네 축 전부 행이 있고 감점마다 근거·점수 (4) #4 예상 점수 = max_score − 감점 합, 만점이 추정이면 [추정] (5) #5 grade_verdict 가 판정 규칙과 일치하고 근거 3줄 이내, frontmatter 값과 일치 (6) REVISE/FAIL 이면 #6 수정 요구가 대상(req|draft)·항목·바꿀 것·원문 위치와 함께, 작성자가 그것만 보고 고칠 수 있는 수준 — PASS 면 '해당 없음' (7) frontmatter 에 type: analysis, status: draft, owner: class-team:examiner, course, assignment, grade_verdict, expected_score, max_score, round, inputs, created 가 전부 있다 — type/status/owner 가 빠지면 node done 이 실패한다"
+    },
+    {
+      "id": "plan",
+      "title": "제출 전 체크리스트 + 수정 계획 (오케스트레이터, assignment-plan 4절)",
+      "agent": "orchestrator",
+      "skill": "class-team:assignment-plan",
+      "inputs": ["{target}", "{decompose.out}", "{draft.out}", "{grade.out}"],
+      "outputs": ["_work/{stem}.assignment-plan.md"],
+      "prompt": "목표: {decompose.out}, {draft.out}, {grade.out} 세 파일만 근거로 assignment-plan 스킬 4절 제출 전 계획(요구사항↔초안↔채점 대응표 · 수정 계획 · 체크리스트 · 리스크)을 직접 쓴다.\n입력: {decompose.out}, {draft.out}, {grade.out} (세 파일에 적힌 것만. {target} 은 마감·규정 원문 확인용으로만 연다. 에이전트 결과를 요약·윤색하지 않는다)\n출력: _work/{stem}.assignment-plan.md — frontmatter type: plan, status: (grade_verdict PASS 면 in-review, 아니면 draft), owner: class-team, verified_by: [], verify_round: 0, course: {course}, assignment: <req 의 assignment>, due: <req 의 due>, grade: <grade_verdict>, expected_score: <expected_score>/<max_score>, round: <회차>, run: <run_id>, inputs: [{target}, {decompose.out}, {draft.out}, {grade.out}], created: {today}\n제약: 세 파일에 없는 요구사항·수정 항목을 새로 만들지 않는다. grade #6 수정 요구를 하나도 빠뜨리지 않는다. grade #1 에서 req 에 없다고 지적된 요구도 대응표에 넣는다. req #0 AI·협업 규정을 #0-1 에 그대로 옮긴다. 본문 첫 줄 인용문(grade 판정·'제출물 자체가 아니다')을 유지한다. '완성'·'제출 완료' 라고 쓰지 않는다. 3,000자 이내.\n완료조건: (1) 섹션 0~6 이 양식대로 있다 (2) #1 대응표에 req 의 모든 R-ID + grade #1 누락 지적 요구가 행으로, 각 행에 초안 위치·grade 지적·상태 (3) #2 수정 계획에 grade #6 전부(PASS 면 draft #4 막힐 지점), 행마다 완료 기준·예상 소요·기한 (4) #3 체크리스트에 req #1 제출물·#2 제약 행마다 체크 항목 + 출처 표기 + 규정 준수 + 마감 (5) #4 리스크에 표절·출처 위험과 근거 부실 각 한 행 이상, 출처·징후·대응 (6) #5 에 req #5 질문할 것 전부 (7) frontmatter 에 type: plan, status, owner: class-team, verified_by: [], verify_round: 0, course, assignment, due, grade, expected_score, round, run, inputs, created 가 전부 있다 — type/status/owner 가 빠지면 node done 이 실패한다"
+    }
+  ]
+}

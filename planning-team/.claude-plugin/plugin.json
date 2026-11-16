@@ -1,0 +1,9 @@
+{
+  "name": "planning-team",
+  "version": "0.1.0",
+  "description": "기획팀. 아이디어 md 하나를 받아 세 관점(사용자 가치·기술 실현 가능성·리스크/차별화)의 독립 기획안을 병렬로 만들고(brainstormer), 적대적 심사로 승자를 고른 뒤(judge), 스펙(spec-writer)과 실행 계획(plan-format 규격)으로 올린다. hq-core 그래프 규약(graphs/plan.json)으로 실행되어 runs/ 에 기록된다. 결과는 G1(originality) 통과 전까지 '확정'이 아니다.",
+  "author": {
+    "name": "Junyong"
+  },
+  "displayName": "기획팀"
+}

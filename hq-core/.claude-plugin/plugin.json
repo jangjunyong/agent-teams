@@ -1,0 +1,9 @@
+{
+  "name": "hq-core",
+  "version": "0.3.1",
+  "description": "AI-HQ 하네스. 팀 파이프라인을 그래프(graph.json)로 정의·실행하고, 모든 실행을 runs/ 이벤트 레저에 기록하며, 실시간 대시보드로 팀 가동 상황을 보여준다. 훅으로 서브에이전트 추적·산출물 추적·deliverables 가드를 건다.",
+  "author": {
+    "name": "Junyong"
+  },
+  "displayName": "하네스 (본부 인프라)"
+}
